@@ -20,6 +20,7 @@ func dumpContents(pe *manta.PacketEntity, pet manta.EntityEventType) error { // 
 
 func runParser(c *cli.Context) error {
 	dump := c.Bool("dump")
+	timeSeriesInterval := c.Uint("interval")
 
 	f := os.Stdin
 	fname := c.Args().First()
@@ -52,7 +53,6 @@ func runParser(c *cli.Context) error {
 	gameEndTime := float32(0)
 	gameTime := int32(0)
 	timeSeriesTick := int32(-1)
-	timeSeriesInterval := int32(5)
 
 	p.OnPacketEntity(func(pe *manta.PacketEntity, pet manta.EntityEventType) error {
 		if gameEnded {
@@ -90,7 +90,7 @@ func runParser(c *cli.Context) error {
 			}
 		case "CDOTA_DataSpectator":
 			if gameStarted && gameTime >= timeSeriesTick {
-				timeSeriesTick = gameTime + timeSeriesInterval
+				timeSeriesTick = gameTime + int32(timeSeriesInterval)
 				for i := 0; i < 10; i++ {
 					nw, b := pe.FetchInt32(fmt.Sprintf("m_iNetWorth.000%d", i))
 					if !b {
@@ -141,6 +141,7 @@ func main() {
 		},
 		cli.UintFlag{
 			Name:  "interval",
+			Value: 60,
 			Usage: "Time series recording interval in seconds",
 		},
 	}
